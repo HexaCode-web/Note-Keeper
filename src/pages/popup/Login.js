@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { GETCOLLECTION, SETDOC } from '../../background'
 import { CreateToast } from './App'
 export default function Main(props) {
@@ -42,15 +42,17 @@ export default function Main(props) {
         if (MatchUsername.Password === LoggedInUser.Password) {
           localStorage.setItem('ActiveUser', JSON.stringify(MatchUsername))
           chrome.storage.local.set({ Notes: MatchUsername.Notes })
+          localStorage.setItem('LoginTime', JSON.stringify(formattedDate))
 
           localStorage.setItem('InsertText', JSON.stringify(true))
-          localStorage.setItem('AdvancedMode', false)
+          localStorage.setItem('BreakTimer', false)
+          localStorage.setItem('AdvancedMode', true)
           chrome.storage.local.set({ AdvancedMode: false })
+          props.setActivePage('APP')
           await SETDOC('Users', MatchUsername.ID, {
             ...MatchUsername,
             LastUpdate: formattedDate,
           })
-          props.setActivePage('APP')
         } else {
           CreateToast('كلمة مرور خاطئة', 'error')
         }

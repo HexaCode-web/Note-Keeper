@@ -7,6 +7,7 @@ export default function Main() {
     DCCopy: JSON.parse(localStorage.getItem('DoubleClick')),
     InsertText: JSON.parse(localStorage.getItem('InsertText')),
     AdvancedMode: JSON.parse(localStorage.getItem('AdvancedMode')),
+    BreakTimer: JSON.parse(localStorage.getItem('BreakTimer')),
   })
   const [ShowNewNote, setShowNewNote] = React.useState(false)
   const [searching, setSearching] = React.useState(false)
@@ -35,11 +36,10 @@ export default function Main() {
   const [User, setUser] = React.useState(
     JSON.parse(localStorage.getItem('ActiveUser')) || {},
   )
-
   useEffect(() => {
     const LastLogin = async () => {
       const FetchedUser = await GETDOC('Users', User.ID)
-      const lastLogin = FetchedUser.LastUpdate
+      const lastLogin = JSON.parse(localStorage.getItem('LoginTime'))
       const FetchedNotes = FetchedUser.Notes
       const targetTime = new Date(lastLogin)
       const currentTime = new Date()
@@ -47,7 +47,7 @@ export default function Main() {
       const timeDifference = currentTime - targetTime // Difference in milliseconds
       const hoursDifference = timeDifference / (1000 * 60 * 60) // Convert to hours
 
-      return { Hours: hoursDifference >= 24, FetchedNotes: FetchedNotes }
+      return { Hours: hoursDifference >= 12, FetchedNotes: FetchedNotes }
     }
 
     LastLogin().then((res) => {
@@ -57,6 +57,8 @@ export default function Main() {
         setSyncError(true)
       }
       if (res.Hours) {
+        alert('اعد تسجيل الدخول')
+
         logout()
       }
     })
@@ -92,6 +94,10 @@ export default function Main() {
       setSettings((prev) => ({ ...prev, AdvancedMode: checked }))
       localStorage.setItem('AdvancedMode', checked)
       chrome.storage.local.set({ AdvancedMode: checked })
+    } else if (name === 'BreakTimer') {
+      setSettings((prev) => ({ ...prev, BreakTimer: checked }))
+      localStorage.setItem('BreakTimer', checked)
+      chrome.storage.local.set({ BreakTimer: checked })
     }
   }
   const handleInput = (event) => {
@@ -134,7 +140,6 @@ export default function Main() {
     localStorage.removeItem('ActiveUser')
     localStorage.removeItem('NewNote')
     chrome.storage.local.set({ AdvancedMode: false })
-    alert('اعد تسجيل الدخول')
     window.location.reload()
   }
   const Search = (event) => {
@@ -353,19 +358,15 @@ export default function Main() {
           placeholder="search"
           autoFocus
         />
-        <img
-          src={'../../icons/logout.png'}
-          className="Icon"
-          onClick={logout}
-        ></img>
-      </div>
-
-      <div className="dropdown-container CheckContainer">
-        <button className="bn632-hover bn24" onClick={toggleDropdown}>
-          الاعدادات
-        </button>
-        {isDropdownOpen && (
-          <div className="dropdown-content">
+        <div className="dropdown-container CheckContainer">
+          <img
+            src={'../../icons/settings.png'}
+            className="Icon"
+            onClick={toggleDropdown}
+          />
+          <div
+            className={`dropdown-content ${isDropdownOpen ? 'open' : 'closed'}`}
+          >
             <label className="CheckWrapper" title="اضافة الكلام في الموقع">
               <input
                 type="checkbox"
@@ -402,15 +403,31 @@ export default function Main() {
               />
               FreshChat Mode (BETA)
             </label>
+            <label className="CheckWrapper" title="عداد البريكات">
+              <input
+                type="checkbox"
+                checked={settings.BreakTimer}
+                name="BreakTimer"
+                onChange={handleCheckboxChange}
+              />
+              Breaks Timer
+            </label>
           </div>
-        )}
+        </div>
+        <img
+          src={'../../icons/logout.png'}
+          className="Icon"
+          onClick={logout}
+        ></img>
       </div>
+
       {searching && <span className="error">no note found </span>}
       <div style={{ display: 'flex' }}>
         {ShowNewNote && (
           <button
             title="حفظ"
             className="bn632-hover bn24"
+            style={{ marginTop: '55px' }}
             onClick={SaveNewNote}
           >
             Save note
@@ -420,6 +437,7 @@ export default function Main() {
           title={ShowNewNote ? 'الغاء' : 'اضافة'}
           type="button"
           className="bn632-hover bn24"
+          style={{ marginTop: '55px' }}
           onClick={() => {
             setShowNewNote((prev) => !prev)
           }}

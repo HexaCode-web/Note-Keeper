@@ -119,7 +119,10 @@ function getDistanceToBottomOfScreen(focusedElement) {
   return distanceToBottom
 }
 let Notes // Declare the Notes variable outside the function to make it accessible globally
-const RenderNotesList = async () => {
+let SecondContact
+let FirstContact
+
+const RenderNotesList = async (event) => {
   const focusedElement = document.activeElement
   if (focusedElement.parentNode.className.includes('ant-dropdown-trigger')) {
     return
@@ -129,19 +132,27 @@ const RenderNotesList = async () => {
     checkElement.remove()
   }
   const result = await chrome.storage.local.get(['AdvancedMode', 'Notes'])
+
   if (result.AdvancedMode) {
     Notes = result.Notes
     const input = focusedElement.value
-    const matchingNotes = input
-      ? Notes.filter((oldNote) => {
-          return oldNote.title.toUpperCase().startsWith(input.toUpperCase())
-        })
-      : []
-    if (matchingNotes.length > 0) {
-      createNoteListContainer(matchingNotes)
-    } else {
-      if (checkElement) {
-        checkElement.remove()
+    if (input.includes('/')) {
+      const parts = input.split('/') // Split the string into an array using "/"
+      const valueAfterLastSlash = parts[parts.length - 1]
+
+      const matchingNotes = valueAfterLastSlash
+        ? Notes.filter((oldNote) => {
+            return oldNote.title
+              .toUpperCase()
+              .startsWith(valueAfterLastSlash.toUpperCase())
+          })
+        : []
+      if (matchingNotes.length > 0) {
+        createNoteListContainer(matchingNotes)
+      } else {
+        if (checkElement) {
+          checkElement.remove()
+        }
       }
     }
   }
@@ -155,7 +166,7 @@ const handleKeyboardInput = async (event) => {
   ) {
     handleEnterInput(event)
   } else {
-    RenderNotesList()
+    RenderNotesList(event)
   }
 }
 const handleEnterInput = (event) => {
@@ -164,7 +175,15 @@ const handleEnterInput = (event) => {
 
   if (checkElement) {
     event.preventDefault()
-    focusedElement.value = checkElement.querySelector('li p').innerHTML
+    const parts = focusedElement.value.split('/') // Split the string into an array using "/"
+    const valueAfterLastSlash = parts[parts.length - 1]
+    const modifiedString = focusedElement.value.replace(
+      `/${valueAfterLastSlash}`,
+      '',
+    )
+
+    focusedElement.value =
+      modifiedString + ' ' + checkElement.querySelector('li p').innerHTML
     focusedElement.dispatchEvent(
       new Event('input', {
         bubbles: true,
@@ -206,7 +225,13 @@ const onClickInsert = (Note) => {
   const textareaOrInput = findNearestTextAreaOrInput(checkElement)
 
   if (textareaOrInput) {
-    textareaOrInput.value = Note
+    const parts = textareaOrInput.value.split('/') // Split the string into an array using "/"
+    const valueAfterLastSlash = parts[parts.length - 1]
+    const modifiedString = textareaOrInput.value.replace(
+      `/${valueAfterLastSlash}`,
+      '',
+    )
+    textareaOrInput.value = modifiedString + ' ' + Note
     textareaOrInput.dispatchEvent(
       new Event('input', {
         bubbles: true,
@@ -216,4 +241,64 @@ const onClickInsert = (Note) => {
   }
   checkElement.remove()
 }
-document.activeElement.addEventListener('keydown', handleKeyboardInput, true)
+if (document.activeElement) {
+  document.activeElement.addEventListener('keydown', handleKeyboardInput, true)
+}
+// TIMER
+let countdown = 3600
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(
+    remainingSeconds,
+  ).padStart(2, '0')}`
+}
+
+async function updateTimer() {
+  const result = await chrome.storage.local.get(['BreakTimer'])
+  if (!result.BreakTimer) {
+    const header = document.querySelector(
+      '.ant-layout-header.headerContainer-0-2-5',
+    )
+    const checkElement = header.querySelector('#countdown-timer')
+    if (checkElement) {
+      header.removeChild(checkElement)
+    }
+    return
+  }
+  const header = document.querySelector(
+    '.ant-layout-header.headerContainer-0-2-5',
+  )
+  const checkElement = header.querySelector('#countdown-timer')
+  if (header) {
+    if (!checkElement) {
+      const timerSpan = document.createElement('span')
+      timerSpan.id = 'countdown-timer'
+      timerSpan.textContent = `Break time Left:${formatTime(countdown)} mins`
+      header.appendChild(timerSpan)
+    }
+  }
+  const srcElement = document.querySelector('.ant-badge-status-text')
+  if (srcElement) {
+    const src = srcElement.textContent
+    const formattedTime = formatTime(countdown)
+    if (countdown === 0) {
+      clearInterval(timerInterval)
+    } else {
+      if (src === 'Lunch' || src === 'Short Break') {
+        countdown--
+      }
+      if (header) {
+        if (checkElement) {
+          checkElement.textContent = `Break time Left:${formattedTime} mins`
+        }
+      }
+    }
+  } else {
+    // Handle the case where the element is not found
+    console.log('.ant-badge-status-text not found')
+  }
+}
+
+const timerInterval = setInterval(updateTimer, 1000) // Update timer every second

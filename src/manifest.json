@@ -1,18 +1,13 @@
 {
   "manifest_version": 3,
   "name": "NoteKeeper",
-  "version": "2.1.6",
+  "version": "2.2.1",
   "description": "Notes",
   "background": {
     "service_worker": "background/index.js"
   },
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "pages/popup/index.html",
     "default_icon": {
@@ -21,12 +16,9 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content_script.js"
-      ], "run_at": "document_start"
+      "matches": ["<all_urls>"],
+      "js": ["content_script.js"],
+      "run_at": "document_start"
     }
   ]
 }
