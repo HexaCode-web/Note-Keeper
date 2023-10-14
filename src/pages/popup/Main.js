@@ -403,7 +403,7 @@ export default function Main() {
               />
               FreshChat Mode (BETA)
             </label>
-            <label className="CheckWrapper" title="عداد البريكات">
+            {/* <label className="CheckWrapper" title="عداد البريكات">
               <input
                 type="checkbox"
                 checked={settings.BreakTimer}
@@ -411,7 +411,7 @@ export default function Main() {
                 onChange={handleCheckboxChange}
               />
               Breaks Timer
-            </label>
+            </label> */}
           </div>
         </div>
         <img
@@ -475,6 +475,7 @@ export default function Main() {
                 const targetNote = NOTES.find((oldNote) => {
                   return oldNote.id === note.id
                 })
+                console.log(value.split('\n').length)
                 const Notes = NOTES
                 Notes.splice(Notes.indexOf(targetNote), 1)
                 targetNote[name] = value
@@ -534,6 +535,7 @@ export default function Main() {
                     value={note.title}
                   ></input>
                   <textarea
+                    rows={note.text.split('\n').length + 4}
                     value={note.text}
                     name="text"
                     onChange={() => {

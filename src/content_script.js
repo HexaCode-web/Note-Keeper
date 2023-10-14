@@ -1,3 +1,8 @@
+import {
+  differenceInSeconds,
+  differenceInMinutes,
+  differenceInHours,
+} from 'date-fns'
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   const focusedElement = document.activeElement
   if (
@@ -132,7 +137,6 @@ const RenderNotesList = async (event) => {
     checkElement.remove()
   }
   const result = await chrome.storage.local.get(['AdvancedMode', 'Notes'])
-
   if (result.AdvancedMode) {
     Notes = result.Notes
     const input = focusedElement.value
@@ -159,14 +163,16 @@ const RenderNotesList = async (event) => {
 }
 
 const handleKeyboardInput = async (event) => {
-  if (
-    event.key === 'ArrowDown' ||
-    event.key === 'Enter' ||
-    event.keyCode === 13
-  ) {
-    handleEnterInput(event)
-  } else {
-    RenderNotesList(event)
+  if (document.activeElement) {
+    if (
+      event.key === 'ArrowDown' ||
+      event.key === 'Enter' ||
+      event.keyCode === 13
+    ) {
+      handleEnterInput(event)
+    } else {
+      RenderNotesList(event)
+    }
   }
 }
 const handleEnterInput = (event) => {
@@ -241,64 +247,88 @@ const onClickInsert = (Note) => {
   }
   checkElement.remove()
 }
-if (document.activeElement) {
-  document.activeElement.addEventListener('keydown', handleKeyboardInput, true)
-}
+
+document.addEventListener('keydown', handleKeyboardInput, true)
+
 // TIMER
-let countdown = 3600
+// let timeConsumed = null
+// let diffSeconds = null
+// let countDown = 3600 - diffSeconds
+// let startDate = 0
+// let didTimerUpdated = false
+// function formatTime(seconds) {
+//   const minutes = Math.floor(seconds / 60)
+//   const remainingSeconds = seconds % 60
+//   return `${String(minutes).padStart(2, '0')}:${String(
+//     remainingSeconds,
+//   ).padStart(2, '0')}`
+// }
+// async function updateTimer() {
+//   const logNumbers = () => {
+//     console.log(
+//       `timeConsumed:${timeConsumed} \n countDown:${countDown}  \n didTimerUpdated:${didTimerUpdated}\n  diffSeconds:${diffSeconds}  `,
+//     )
+//   }
+//   const CurrentDate = new Date()
 
-function formatTime(seconds) {
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-  return `${String(minutes).padStart(2, '0')}:${String(
-    remainingSeconds,
-  ).padStart(2, '0')}`
-}
+//   const result = await chrome.storage.local.get(['BreakTimer'])
+//   if (!result.BreakTimer) {
+//     const header = document.querySelector(
+//       '.ant-layout-header.headerContainer-0-2-5',
+//     )
+//     const checkElement = header.querySelector('#countdown-timer')
+//     if (checkElement) {
+//       header.removeChild(checkElement)
+//     }
+//     return
+//   }
 
-async function updateTimer() {
-  const result = await chrome.storage.local.get(['BreakTimer'])
-  if (!result.BreakTimer) {
-    const header = document.querySelector(
-      '.ant-layout-header.headerContainer-0-2-5',
-    )
-    const checkElement = header.querySelector('#countdown-timer')
-    if (checkElement) {
-      header.removeChild(checkElement)
-    }
-    return
-  }
-  const header = document.querySelector(
-    '.ant-layout-header.headerContainer-0-2-5',
-  )
-  const checkElement = header.querySelector('#countdown-timer')
-  if (header) {
-    if (!checkElement) {
-      const timerSpan = document.createElement('span')
-      timerSpan.id = 'countdown-timer'
-      timerSpan.textContent = `Break time Left:${formatTime(countdown)} mins`
-      header.appendChild(timerSpan)
-    }
-  }
-  const srcElement = document.querySelector('.ant-badge-status-text')
-  if (srcElement) {
-    const src = srcElement.textContent
-    const formattedTime = formatTime(countdown)
-    if (countdown === 0) {
-      clearInterval(timerInterval)
-    } else {
-      if (src === 'Lunch' || src === 'Short Break') {
-        countdown--
-      }
-      if (header) {
-        if (checkElement) {
-          checkElement.textContent = `Break time Left:${formattedTime} mins`
-        }
-      }
-    }
-  } else {
-    // Handle the case where the element is not found
-    console.log('.ant-badge-status-text not found')
-  }
-}
+//   const header = document.querySelector(
+//     '.ant-layout-header.headerContainer-0-2-5',
+//   )
+//   const checkElement = header.querySelector('#countdown-timer')
+//   if (header) {
+//     if (!checkElement) {
+//       const timerSpan = document.createElement('span')
+//       timerSpan.id = 'countdown-timer'
+//       timerSpan.textContent = `Break time Left:${formatTime(countDown)} mins`
+//       header.appendChild(timerSpan)
+//     }
+//   }
 
-const timerInterval = setInterval(updateTimer, 1000) // Update timer every second
+//   const srcElement = document.querySelector('.ant-badge-status-text')
+//   if (srcElement) {
+//     const src = srcElement.textContent
+//     const formattedTime = formatTime(countDown)
+//     if (countDown === 0) {
+//       clearInterval(timerInterval)
+//     } else {
+//       if (src === 'Lunch' || src === 'Short Break') {
+//         if (!didTimerUpdated) {
+//           didTimerUpdated = true
+//           startDate = new Date() // Set StartDate to the current date and time
+//         }
+
+//         diffSeconds = differenceInSeconds(CurrentDate, startDate)
+
+//         countDown = 3600 - diffSeconds
+//       } else {
+//         diffSeconds = 0
+//         didTimerUpdated = false
+//         startDate = null
+//       }
+
+//       if (header) {
+//         if (checkElement) {
+//           checkElement.textContent = `Break time Left:${formattedTime} mins`
+//         }
+//       }
+//     }
+//     logNumbers()
+//   } else {
+//     // Handle the case where the element is not found
+//     console.log('.ant-badge-status-text not found')
+//   }
+// }
+
+// const timerInterval = setInterval(updateTimer, 1000) // Update timer every second

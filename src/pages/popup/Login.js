@@ -47,7 +47,7 @@ export default function Main(props) {
           localStorage.setItem('InsertText', JSON.stringify(true))
           localStorage.setItem('BreakTimer', false)
           localStorage.setItem('AdvancedMode', true)
-          chrome.storage.local.set({ AdvancedMode: false })
+          chrome.storage.local.set({ AdvancedMode: true })
           props.setActivePage('APP')
           await SETDOC('Users', MatchUsername.ID, {
             ...MatchUsername,
