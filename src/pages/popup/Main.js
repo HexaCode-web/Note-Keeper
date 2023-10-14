@@ -475,7 +475,6 @@ export default function Main() {
                 const targetNote = NOTES.find((oldNote) => {
                   return oldNote.id === note.id
                 })
-                console.log(value.split('\n').length)
                 const Notes = NOTES
                 Notes.splice(Notes.indexOf(targetNote), 1)
                 targetNote[name] = value
