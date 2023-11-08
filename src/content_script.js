@@ -124,8 +124,6 @@ function getDistanceToBottomOfScreen(focusedElement) {
   return distanceToBottom
 }
 let Notes // Declare the Notes variable outside the function to make it accessible globally
-let SecondContact
-let FirstContact
 
 const RenderNotesList = async (event) => {
   const focusedElement = document.activeElement
@@ -249,86 +247,128 @@ const onClickInsert = (Note) => {
 }
 
 document.addEventListener('keydown', handleKeyboardInput, true)
+//TIMER
+let timeConsumed = null
+let diffSeconds = null
+let StoredTimer = await chrome.storage.local.get(['Timer'])
+let countDown = StoredTimer.Timer
+  ? StoredTimer.Timer - diffSeconds
+  : 3600 - diffSeconds
+let startDate = 0
+let didTimerUpdated = false
 
-// TIMER
-// let timeConsumed = null
-// let diffSeconds = null
-// let countDown = 3600 - diffSeconds
-// let startDate = 0
-// let didTimerUpdated = false
-// function formatTime(seconds) {
-//   const minutes = Math.floor(seconds / 60)
-//   const remainingSeconds = seconds % 60
-//   return `${String(minutes).padStart(2, '0')}:${String(
-//     remainingSeconds,
-//   ).padStart(2, '0')}`
-// }
-// async function updateTimer() {
-//   const logNumbers = () => {
-//     console.log(
-//       `timeConsumed:${timeConsumed} \n countDown:${countDown}  \n didTimerUpdated:${didTimerUpdated}\n  diffSeconds:${diffSeconds}  `,
-//     )
-//   }
-//   const CurrentDate = new Date()
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(
+    remainingSeconds,
+  ).padStart(2, '0')}`
+}
 
-//   const result = await chrome.storage.local.get(['BreakTimer'])
-//   if (!result.BreakTimer) {
-//     const header = document.querySelector(
-//       '.ant-layout-header.headerContainer-0-2-5',
-//     )
-//     const checkElement = header.querySelector('#countdown-timer')
-//     if (checkElement) {
-//       header.removeChild(checkElement)
-//     }
-//     return
-//   }
+// This function runs every second
+async function updateTimer() {
+  const CurrentDate = new Date()
+  const result = await chrome.storage.local.get(['BreakTimer'])
 
-//   const header = document.querySelector(
-//     '.ant-layout-header.headerContainer-0-2-5',
-//   )
-//   const checkElement = header.querySelector('#countdown-timer')
-//   if (header) {
-//     if (!checkElement) {
-//       const timerSpan = document.createElement('span')
-//       timerSpan.id = 'countdown-timer'
-//       timerSpan.textContent = `Break time Left:${formatTime(countDown)} mins`
-//       header.appendChild(timerSpan)
-//     }
-//   }
+  // If the option in the extension is disabled, remove the existing timer
+  if (!result.BreakTimer) {
+    const header = document.querySelector(
+      '.ant-layout-header.headerContainer-0-2-5',
+    )
+    const checkElement = header.querySelector('#countdown-container')
+    if (checkElement) {
+      header.removeChild(checkElement)
+    }
+    return
+  }
 
-//   const srcElement = document.querySelector('.ant-badge-status-text')
-//   if (srcElement) {
-//     const src = srcElement.textContent
-//     const formattedTime = formatTime(countDown)
-//     if (countDown === 0) {
-//       clearInterval(timerInterval)
-//     } else {
-//       if (src === 'Lunch' || src === 'Short Break') {
-//         if (!didTimerUpdated) {
-//           didTimerUpdated = true
-//           startDate = new Date() // Set StartDate to the current date and time
-//         }
+  const header = document.querySelector(
+    '.ant-layout-header.headerContainer-0-2-5',
+  )
 
-//         diffSeconds = differenceInSeconds(CurrentDate, startDate)
+  // Check if the timer is already on the screen
+  const checkElement = header.querySelector('#countdown-container')
 
-//         countDown = 3600 - diffSeconds
-//       } else {
-//         diffSeconds = 0
-//         didTimerUpdated = false
-//         startDate = null
-//       }
+  // If the header exists and the timer is not on the screen
+  if (header && !checkElement) {
+    // Create a timer wrapper
+    const timerSpan = document.createElement('span')
+    timerSpan.id = 'countdown-container'
+    // Create a reset button
+    const button = document.createElement('span')
+    button.id = 'countdown-Reset'
+    button.textContent = ' Reset?'
+    button.style.cursor = 'pointer'
 
-//       if (header) {
-//         if (checkElement) {
-//           checkElement.textContent = `Break time Left:${formattedTime} mins`
-//         }
-//       }
-//     }
-//     logNumbers()
-//   } else {
-//     // Handle the case where the element is not found
-//     console.log('.ant-badge-status-text not found')
-//   }
-// }
+    // Event listener for the reset button
+    button.addEventListener('click', () => {
+      StoredTimer = 3600
+      timeConsumed = 0
+      countDown = 3600
+      didTimerUpdated = false
+      diffSeconds = 0
+      startDate = 0
+      chrome.storage.local.set({ Timer: 3600 })
+    })
 
-// const timerInterval = setInterval(updateTimer, 1000) // Update timer every second
+    // Create the timer itself
+    const Timer = document.createElement('span')
+    Timer.id = 'countdown-Timer'
+    Timer.textContent = `Break time Left:${formatTime(countDown)} mins`
+
+    header.appendChild(timerSpan)
+    timerSpan.appendChild(Timer)
+    timerSpan.appendChild(button)
+  }
+
+  // Get the status element
+  const srcElement = document.querySelector('.ant-badge-status-text')
+
+  if (srcElement) {
+    // If the status element exists, get the status's text content
+    const src = srcElement.textContent
+    // Format time to display it
+    const formattedTime = formatTime(countDown)
+
+    const whiteList = ['Lunch', 'Short Break']
+    // If the status element's text is in the whiteList
+    // the initial value of didTimerUpdated is false
+    // so this will be the first if that runs when changing from anything to 'Lunch' or 'Short Break'
+    if (whiteList.includes(src) === true && !didTimerUpdated) {
+      // Start or resume the timer when 'Lunch' or 'Short Break' and it wasn't previously running
+      didTimerUpdated = true
+      startDate = new Date()
+    } else if (whiteList.includes(src) === false && didTimerUpdated) {
+      // This means the status was changed from 'Lunch' or 'Short Break' to something else
+      // Pause the timer when it's not 'Lunch' or 'Short Break' and it was running
+      didTimerUpdated = false
+      timeConsumed = diffSeconds
+    }
+
+    // If there were no changes in the status but changes were made to didTimerUpdated and it was true
+    if (didTimerUpdated) {
+      diffSeconds = timeConsumed + differenceInSeconds(CurrentDate, startDate)
+      countDown = StoredTimer.Timer
+        ? StoredTimer.Timer - diffSeconds
+        : 3600 - diffSeconds
+      chrome.storage.local.set({ Timer: countDown })
+    }
+
+    if (countDown === 0) {
+      clearInterval(timerInterval)
+    }
+
+    if (header) {
+      if (checkElement) {
+        checkElement.querySelector(
+          '#countdown-Timer',
+        ).textContent = `Break time Left:${formattedTime} mins`
+      }
+    }
+  } else {
+    // Handle the case where the element is not found
+    console.log('.ant-badge-status-text not found')
+  }
+}
+
+const timerInterval = setInterval(updateTimer, 1000) // Update the timer every second

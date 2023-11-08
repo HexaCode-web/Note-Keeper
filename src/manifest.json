@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NoteKeeper",
-  "version": "2.2.1",
+  "version": "2.2.3",
   "description": "Notes",
   "background": {
     "service_worker": "background/index.js"

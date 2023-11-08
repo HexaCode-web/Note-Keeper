@@ -23,6 +23,10 @@ export default function Main(props) {
     })
   }
   const handleSignup = async (e) => {
+    if (NewUser.UserName === '' || NewUser.Password === '') {
+      CreateToast('اسم المستخدم و كلمة المرور مطلوبين', 'error', 2000)
+      return
+    }
     e.preventDefault()
     let Matches = await QUERY('Users', 'UserName', '==', NewUser.UserName)
     if (Matches.length > 0) {

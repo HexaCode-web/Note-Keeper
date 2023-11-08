@@ -16,6 +16,12 @@ export default function Main() {
   const [hoveredNoteId, setHoveredNoteId] = React.useState(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [syncError, setSyncError] = useState(false)
+  const [NOTES, setNotes] = React.useState(
+    JSON.parse(localStorage.getItem('ActiveUser')).Notes || [],
+  )
+  const [User, setUser] = React.useState(
+    JSON.parse(localStorage.getItem('ActiveUser')) || {},
+  )
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen)
   }
@@ -33,9 +39,10 @@ export default function Main() {
       id: generateId(),
     },
   )
-  const [User, setUser] = React.useState(
-    JSON.parse(localStorage.getItem('ActiveUser')) || {},
-  )
+
+  function compareText(oldStr, newStr) {
+    return oldStr.toLowerCase() === newStr.toLowerCase()
+  }
   useEffect(() => {
     const LastLogin = async () => {
       const FetchedUser = await GETDOC('Users', User.ID)
@@ -56,6 +63,25 @@ export default function Main() {
       } else {
         setSyncError(true)
       }
+      if (NOTES) {
+        res.FetchedNotes.forEach((fetchedNote) => {
+          NOTES.forEach((storedNote) => {
+            if (storedNote.id === fetchedNote.id) {
+              const noteTitleMatch = compareText(
+                storedNote.title,
+                fetchedNote.title,
+              )
+              const noteTextMatch = compareText(
+                storedNote.text,
+                fetchedNote.text,
+              )
+              if (!noteTextMatch || !noteTitleMatch) {
+                setSyncError(true)
+              }
+            }
+          })
+        })
+      }
       if (res.Hours) {
         alert('اعد تسجيل الدخول')
 
@@ -73,9 +99,6 @@ export default function Main() {
     }
     fixSyncError()
   }, [syncError])
-  const [NOTES, setNotes] = React.useState(
-    JSON.parse(localStorage.getItem('ActiveUser')).Notes || [],
-  )
 
   const handleCheckboxChange = (event) => {
     const { name, checked } = event.target
@@ -102,6 +125,10 @@ export default function Main() {
   }
   const handleInput = (event) => {
     const { name, value } = event.target
+    if (name === 'title' && value === '/') {
+      CreateToast('"/"غير مسموح بستعمال', 'error', 2000)
+      return
+    }
     setNewNote((prev) => {
       return { ...prev, [name]: value }
     })
@@ -403,15 +430,17 @@ export default function Main() {
               />
               FreshChat Mode (BETA)
             </label>
-            {/* <label className="CheckWrapper" title="عداد البريكات">
-              <input
-                type="checkbox"
-                checked={settings.BreakTimer}
-                name="BreakTimer"
-                onChange={handleCheckboxChange}
-              />
-              Breaks Timer
-            </label> */}
+            {User.UserName === 'marco' && (
+              <label className="CheckWrapper" title="عداد البريكات">
+                <input
+                  type="checkbox"
+                  checked={settings.BreakTimer}
+                  name="BreakTimer"
+                  onChange={handleCheckboxChange}
+                />
+                Breaks Timer
+              </label>
+            )}
           </div>
         </div>
         <img
@@ -472,6 +501,10 @@ export default function Main() {
 
               const handleChange = (event) => {
                 const { name, value } = event.target
+                if (name === 'title' && value === '/') {
+                  CreateToast('"/"غير مسموح بستعمال', 'error', 2000)
+                  return
+                }
                 const targetNote = NOTES.find((oldNote) => {
                   return oldNote.id === note.id
                 })
@@ -534,7 +567,7 @@ export default function Main() {
                     value={note.title}
                   ></input>
                   <textarea
-                    rows={note.text.split('\n').length + 4}
+                    rows={note.text.split('\n').length + 3}
                     value={note.text}
                     name="text"
                     onChange={() => {
