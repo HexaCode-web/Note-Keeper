@@ -403,6 +403,7 @@ textarea {
   border-radius: 10px;
   border: 1.5px solid #8f54a0;
   width: 100%;
+  height: 150px;
 }
 .Note-wrapper {
   display: flex;

@@ -42,10 +42,16 @@ export default function Main(props) {
         if (MatchUsername.Password === LoggedInUser.Password) {
           localStorage.setItem('ActiveUser', JSON.stringify(MatchUsername))
           chrome.storage.local.set({ Notes: MatchUsername.Notes })
+          const storedValue = await chrome.storage.local.get(['BreakTimer'])
+
           localStorage.setItem('LoginTime', JSON.stringify(formattedDate))
 
           localStorage.setItem('InsertText', JSON.stringify(true))
-          localStorage.setItem('BreakTimer', false)
+          if (storedValue?.BreakTimer) {
+            localStorage.setItem('BreakTimer', true)
+          } else {
+            localStorage.setItem('BreakTimer', false)
+          }
           localStorage.setItem('AdvancedMode', true)
           chrome.storage.local.set({ AdvancedMode: true })
           props.setActivePage('APP')

@@ -1,8 +1,4 @@
-import {
-  differenceInSeconds,
-  differenceInMinutes,
-  differenceInHours,
-} from 'date-fns'
+import { differenceInSeconds } from 'date-fns'
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   const focusedElement = document.activeElement
   if (
@@ -49,6 +45,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
   }
 })
+
 const createNoteListContainer = (notes) => {
   // Create a <div> element to hold the list of notes
   const focusedElement = document.activeElement
@@ -250,7 +247,7 @@ document.addEventListener('keydown', handleKeyboardInput, true)
 //TIMER
 let timeConsumed = null
 let diffSeconds = null
-let StoredTimer = await chrome.storage.local.get(['Timer'])
+let StoredTimer = await chrome.storage.sync.get(['Timer'])
 let countDown = StoredTimer.Timer
   ? StoredTimer.Timer - diffSeconds
   : 3600 - diffSeconds
@@ -308,7 +305,7 @@ async function updateTimer() {
       didTimerUpdated = false
       diffSeconds = 0
       startDate = 0
-      chrome.storage.local.set({ Timer: 3600 })
+      chrome.storage.sync.set({ Timer: 3600 })
     })
 
     // Create the timer itself
@@ -351,7 +348,8 @@ async function updateTimer() {
       countDown = StoredTimer.Timer
         ? StoredTimer.Timer - diffSeconds
         : 3600 - diffSeconds
-      chrome.storage.local.set({ Timer: countDown })
+
+      chrome.storage.sync.set({ Timer: countDown })
     }
 
     if (countDown === 0) {

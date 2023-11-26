@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { GETDOC, SETDOC } from '../../background'
+import { GETDOC, SETDOC, GETCOLLECTION } from '../../background'
 import { CreateToast } from './App'
 export default function Main() {
   const [settings, setSettings] = useState({
@@ -54,7 +54,11 @@ export default function Main() {
       const timeDifference = currentTime - targetTime // Difference in milliseconds
       const hoursDifference = timeDifference / (1000 * 60 * 60) // Convert to hours
 
-      return { Hours: hoursDifference >= 12, FetchedNotes: FetchedNotes }
+      return {
+        Hours: hoursDifference >= 12,
+        FetchedNotes: FetchedNotes,
+        FetchedUser,
+      }
     }
 
     LastLogin().then((res) => {
@@ -89,6 +93,7 @@ export default function Main() {
       }
     })
   }, [])
+
   useEffect(() => {
     const fixSyncError = async () => {
       if (syncError) {
@@ -430,17 +435,15 @@ export default function Main() {
               />
               FreshChat Mode (BETA)
             </label>
-            {User.UserName === 'marco' && (
-              <label className="CheckWrapper" title="عداد البريكات">
-                <input
-                  type="checkbox"
-                  checked={settings.BreakTimer}
-                  name="BreakTimer"
-                  onChange={handleCheckboxChange}
-                />
-                Breaks Timer
-              </label>
-            )}
+            <label className="CheckWrapper" title="عداد البريكات">
+              <input
+                type="checkbox"
+                checked={settings.BreakTimer}
+                name="BreakTimer"
+                onChange={handleCheckboxChange}
+              />
+              Breaks Timer
+            </label>
           </div>
         </div>
         <img
@@ -567,7 +570,6 @@ export default function Main() {
                     value={note.title}
                   ></input>
                   <textarea
-                    rows={note.text.split('\n').length + 3}
                     value={note.text}
                     name="text"
                     onChange={() => {
