@@ -394,7 +394,9 @@ export default function Main() {
           <img
             src={'../../icons/settings.png'}
             className="Icon"
-            onClick={toggleDropdown}
+            onClick={() => {
+              chrome.tabs.create({ url: chrome.runtime.getURL('popup.html') })
+            }}
           />
           <div
             className={`dropdown-content ${isDropdownOpen ? 'open' : 'closed'}`}

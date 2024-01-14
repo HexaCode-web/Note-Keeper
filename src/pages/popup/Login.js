@@ -1,6 +1,8 @@
 import React from 'react'
 import { GETCOLLECTION, SETDOC } from '../../background'
 import { CreateToast } from './App'
+import CustomInput from '../Input/CustomInput'
+
 export default function Main(props) {
   const [LoggedInUser, setLoggedInUser] = React.useState({
     UserName: '',
@@ -71,42 +73,23 @@ export default function Main(props) {
   return (
     <form className="Form" onSubmit={handleLogin}>
       <h1 style={{ textAlign: 'center' }}>Login</h1>
-      <div className="formItem">
-        <label htmlFor="username">Username:</label>
-        <input
-          className="Input"
-          type="text"
-          Name="UserName"
-          id="username"
-          value={LoggedInUser.UserName}
-          onChange={() => {
-            handleInput(event)
-          }}
-        />
-      </div>
-      <div className="formItem">
-        <label htmlFor="password">Password:</label>
-        <input
-          className="Input"
-          type={showPassword ? 'text' : 'password'}
-          id="password"
-          name="Password"
-          value={LoggedInUser.Password}
-          onChange={() => {
-            handleInput(event)
-          }}
-        />
-      </div>
-      <div className="CheckWrapper" style={{ marginBottom: '70px' }}>
-        <label>
-          <input
-            type="checkbox"
-            checked={showPassword}
-            onChange={handleChange}
-          />
-          Show Password
-        </label>
-      </div>
+
+      <CustomInput
+        label="username"
+        type="text"
+        name="UserName"
+        value={LoggedInUser.UserName}
+        onChangeFunction={handleInput}
+      />
+
+      <CustomInput
+        label="Password:"
+        type="password"
+        name="Password"
+        value={LoggedInUser.Password}
+        onChangeFunction={handleInput}
+      />
+
       <div className="button-wrapper">
         <button className="bn632-hover bn24">Login</button>
         <button

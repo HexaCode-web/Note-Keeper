@@ -1,0 +1,48 @@
+.form-group {
+  position: relative;
+  width: 90%;
+  border-radius: 5px;
+  border: 1px solid black;
+  margin: 20px 0;
+  height: 30px;
+
+  background-color: transparent;
+}
+.form-group.textarea {
+  height: 120px;
+}
+.form-group .label {
+  color: black;
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.2s ease-out;
+}
+.showPassword {
+  position: absolute;
+  top: 30%;
+  right: 9px;
+}
+.form-group .input-lg,
+.form-group div {
+  background-color: transparent;
+  border: none;
+  width: 95%;
+  color: black;
+  height: 100%;
+  padding-left: 8px; /* Adjust as needed */
+}
+
+.form-group .input-lg:focus {
+  outline: none;
+}
+
+.label.focused-label {
+  font-size: 1rem;
+  top: -9px;
+  background-color: white;
+  transform: translateY(0);
+}

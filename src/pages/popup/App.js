@@ -63,24 +63,29 @@ const App = () => {
       ) : (
         <div style={{ width: '100%' }}>
           {ActivePage === 'welcome' ? (
-            <div className="loginPage">
-              <div
-                className="bn632-hover bn24"
-                onClick={() => {
-                  setActivePage('LOGIN')
-                }}
-              >
-                login
+            <>
+              <div className="loginPage">
+                <div
+                  className="bn632-hover bn24"
+                  onClick={() => {
+                    setActivePage('LOGIN')
+                  }}
+                >
+                  login
+                </div>
+                <div
+                  className="bn632-hover bn23"
+                  onClick={() => {
+                    setActivePage('SIGNUP')
+                  }}
+                >
+                  Signup
+                </div>
               </div>
-              <div
-                className="bn632-hover bn23"
-                onClick={() => {
-                  setActivePage('SIGNUP')
-                }}
-              >
-                Signup
-              </div>
-            </div>
+              <p style={{ textAlign: 'center', fontSize: '1.05rem' }}>
+                Version:2.6.0
+              </p>
+            </>
           ) : (
             ''
           )}

@@ -1,6 +1,6 @@
 {
   "name": "notes",
-  "version": "2.2.3",
+  "version": "2.2.5",
   "private": true,
   "description": "Chrome extension boilerplate with JavaScript, React & Firebase",
   "scripts": {
